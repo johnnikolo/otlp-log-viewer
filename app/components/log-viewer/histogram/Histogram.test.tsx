@@ -1,11 +1,14 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Histogram } from "./Histogram";
 import { NormalizedLogRecord, SeverityLevel } from "@/types/otlp";
-import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils/severity";
 
 // bucketByTime buckets by severityText directly (not derived from
 // severityNumber here), so tests pass the level they actually want.
-const mk = (timestampMs: number, severityText: SeverityLevel = "INFO"): NormalizedLogRecord => ({
+const mk = (
+  timestampMs: number,
+  severityText: SeverityLevel = "INFO",
+): NormalizedLogRecord => ({
   id: Math.random().toString(),
   timestampMs,
   severityText,
@@ -26,7 +29,9 @@ const mk = (timestampMs: number, severityText: SeverityLevel = "INFO"): Normaliz
 // before asserting.
 async function waitForBars(container: HTMLElement, count: number) {
   await waitFor(() => {
-    expect(container.querySelectorAll(".recharts-rectangle")).toHaveLength(count);
+    expect(container.querySelectorAll(".recharts-rectangle")).toHaveLength(
+      count,
+    );
   });
 }
 
@@ -42,12 +47,18 @@ describe("Histogram", () => {
   });
 
   it("renders a chart surface without crashing for an empty record set", () => {
-    const { container } = render(<Histogram records={[]} rangeMs={60 * 60 * 1000} />);
-    expect(container.querySelector(".recharts-responsive-container")).toBeInTheDocument();
+    const { container } = render(
+      <Histogram records={[]} rangeMs={60 * 60 * 1000} />,
+    );
+    expect(
+      container.querySelector(".recharts-responsive-container"),
+    ).toBeInTheDocument();
   });
 
   it("draws no bars when every bucket is empty", async () => {
-    const { container } = render(<Histogram records={[]} rangeMs={60 * 60 * 1000} />);
+    const { container } = render(
+      <Histogram records={[]} rangeMs={60 * 60 * 1000} />,
+    );
     // Give any pending animation frame a chance to run; there's nothing to draw either way.
     await new Promise((r) => setTimeout(r, 50));
     expect(container.querySelectorAll(".recharts-rectangle")).toHaveLength(0);
@@ -63,7 +74,9 @@ describe("Histogram", () => {
   it("draws a separate segment per distinct bucket", async () => {
     const now = Date.now();
     const records = [mk(now), mk(now - 30 * 60 * 1000)]; // ~30 min apart, 1h window / 24 buckets
-    const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
+    const { container } = render(
+      <Histogram records={records} rangeMs={60 * 60 * 1000} />,
+    );
     await waitForBars(container, 2);
   });
 
@@ -71,12 +84,14 @@ describe("Histogram", () => {
     const now = Date.now();
     // Same bucket, two different severities -> two stacked segments, not one.
     const records = [mk(now, "INFO"), mk(now, "ERROR")];
-    const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
+    const { container } = render(
+      <Histogram records={records} rangeMs={60 * 60 * 1000} />,
+    );
     await waitForBars(container, 2);
 
-    const fills = Array.from(container.querySelectorAll(".recharts-rectangle")).map((r) =>
-      r.getAttribute("fill"),
-    );
+    const fills = Array.from(
+      container.querySelectorAll(".recharts-rectangle"),
+    ).map((r) => r.getAttribute("fill"));
     expect(fills).toContain(SEVERITY_HEX.INFO);
     expect(fills).toContain(SEVERITY_HEX.ERROR);
   });
@@ -85,7 +100,9 @@ describe("Histogram", () => {
     const now = Date.now();
     // One record per severity, all in the same bucket -> 7 stacked segments.
     const records = ALL_SEVERITY_LEVELS.map((level) => mk(now, level));
-    const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
+    const { container } = render(
+      <Histogram records={records} rangeMs={60 * 60 * 1000} />,
+    );
     await waitForBars(container, ALL_SEVERITY_LEVELS.length);
 
     const rects = Array.from(container.querySelectorAll(".recharts-rectangle"));

@@ -7,11 +7,8 @@ import { NormalizedLogRecord } from "@/types/otlp";
 import { groupByService } from "@/lib/transform";
 import { LogTable } from "./table/LogTable";
 import { SeverityBadge } from "./SeverityBadge";
-import {
-  SEVERITY_ORDER,
-  formatCompactNumber,
-  getSeverityCounts,
-} from "@/lib/utils";
+import { SEVERITY_ORDER, getSeverityCounts } from "@/lib/utils/severity";
+import { formatCompactNumber } from "@/lib/utils/format";
 
 interface Props {
   records: NormalizedLogRecord[];

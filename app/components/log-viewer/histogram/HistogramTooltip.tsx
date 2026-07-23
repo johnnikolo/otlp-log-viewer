@@ -1,7 +1,7 @@
 "use client";
 
 import { TimeBucket } from "@/lib/transform";
-import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils/severity";
 
 interface Props {
   active?: boolean;

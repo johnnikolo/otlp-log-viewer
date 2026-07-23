@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileTextIcon } from "@radix-ui/react-icons";
-import { formatCompactNumber } from "@/lib/utils";
+import { formatCompactNumber } from "@/lib/utils/format";
 import { useLogsQuery } from "@/lib/useLogsQuery";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { RefreshControl } from "./controls/RefreshControl";

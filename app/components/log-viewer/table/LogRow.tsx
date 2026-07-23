@@ -3,7 +3,7 @@
 import { flexRender, type Row } from "@tanstack/react-table";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { NormalizedLogRecord } from "@/types/otlp";
-import { SEVERITY_COLORS } from "@/lib/utils";
+import { SEVERITY_COLORS } from "@/lib/utils/severity";
 import { LogDetail } from "../detail/LogDetail";
 import { CHEVRON_WIDTH } from "./logTableLayout";
 
@@ -50,7 +50,8 @@ export function LogRow({ row, expanded, onToggle }: Props) {
             role="cell"
             style={{
               width: cell.column.getSize(),
-              minWidth: cell.column.id === "body" ? cell.column.getSize() : undefined,
+              minWidth:
+                cell.column.id === "body" ? cell.column.getSize() : undefined,
             }}
             className={`${cell.column.id === "body" ? "flex-1 min-w-0" : "flex-shrink-0"} ${cell.column.columnDef.meta?.cellClassName ?? ""}`}
           >

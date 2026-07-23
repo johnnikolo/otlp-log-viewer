@@ -2,7 +2,7 @@
 
 import { NormalizedLogRecord } from "@/types/otlp";
 import { LogBody } from "./LogBody";
-import { formatFullTimestamp } from "@/lib/utils";
+import { formatFullTimestamp } from "@/lib/utils/time";
 import { CopyableId } from "../../ui/CopyableId";
 
 interface Props {
@@ -23,8 +23,12 @@ export function LogDetail({ record }: Props) {
       {/* Trace correlation */}
       {(record.traceId || record.spanId) && (
         <div className="flex flex-wrap items-center gap-4 text-xs bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded px-3 py-2">
-          {record.traceId && <CopyableId label="Trace ID" value={record.traceId} />}
-          {record.spanId && <CopyableId label="Span ID" value={record.spanId} />}
+          {record.traceId && (
+            <CopyableId label="Trace ID" value={record.traceId} />
+          )}
+          {record.spanId && (
+            <CopyableId label="Span ID" value={record.spanId} />
+          )}
         </div>
       )}
 

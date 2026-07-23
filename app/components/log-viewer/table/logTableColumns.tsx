@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import { NormalizedLogRecord } from "@/types/otlp";
-import { formatTimestamp, formatRelativeTime } from "@/lib/utils";
+import { formatTimestamp, formatRelativeTime } from "@/lib/utils/time";
 import { SeverityBadge } from "../SeverityBadge";
 import { LogBody } from "../detail/LogBody";
 import {

@@ -7,7 +7,7 @@ import {
   SeverityLevel,
   BodyType,
 } from "@/types/otlp";
-import { ALL_SEVERITY_LEVELS } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS } from "@/lib/utils/severity";
 
 // BigInt nanoseconds → milliseconds, safely (avoids precision loss).
 // Returns null for missing/invalid input rather than a fallback value, so

@@ -1,10 +1,17 @@
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { memo, useMemo } from "react";
 import { bucketByTime } from "@/lib/transform";
 import { resolveWindowMs, getRangeLabel } from "@/lib/timeRange";
-import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils/severity";
 import { NormalizedLogRecord } from "@/types/otlp";
 import { HistogramTooltip } from "./HistogramTooltip";
 

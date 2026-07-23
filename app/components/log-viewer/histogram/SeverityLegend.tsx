@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils/severity";
 
 // A static color key for the stacked histogram
 function SeverityLegendImpl() {

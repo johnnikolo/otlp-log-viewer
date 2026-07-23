@@ -2,7 +2,7 @@
 
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { BodyType } from "@/types/otlp";
-import { prettyPrintJson } from "@/lib/utils";
+import { prettyPrintJson } from "@/lib/utils/format";
 
 interface Props {
   body: string;

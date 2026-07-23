@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { HistogramTooltip } from "./HistogramTooltip";
 import { TimeBucket } from "@/lib/transform";
-import { ALL_SEVERITY_LEVELS } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS } from "@/lib/utils/severity";
 
-const mkBucket = (bySeverity: Partial<TimeBucket["bySeverity"]>): TimeBucket => {
+const mkBucket = (
+  bySeverity: Partial<TimeBucket["bySeverity"]>,
+): TimeBucket => {
   const zeroed = {
     FATAL: 0,
     ERROR: 0,
@@ -65,7 +67,9 @@ describe("HistogramTooltip", () => {
       TRACE: 6,
       UNSPECIFIED: 7,
     });
-    const { container } = render(<HistogramTooltip active payload={[{ payload: full }]} />);
+    const { container } = render(
+      <HistogramTooltip active payload={[{ payload: full }]} />,
+    );
 
     // First two <p> are the time range and the total; the rest are the
     // per-severity breakdown, one per level.
@@ -79,7 +83,15 @@ describe("HistogramTooltip", () => {
   it("shows nothing but the total for a bucket with no severities present", () => {
     const empty = mkBucket({});
     render(<HistogramTooltip active payload={[{ payload: empty }]} />);
-    for (const level of ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "UNSPECIFIED"]) {
+    for (const level of [
+      "FATAL",
+      "ERROR",
+      "WARN",
+      "INFO",
+      "DEBUG",
+      "TRACE",
+      "UNSPECIFIED",
+    ]) {
       expect(screen.queryByText(`${level}:`)).not.toBeInTheDocument();
     }
   });

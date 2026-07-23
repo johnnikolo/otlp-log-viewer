@@ -1,5 +1,5 @@
 import { SeverityLevel } from "@/types/otlp";
-import { SEVERITY_COLORS } from "@/lib/utils";
+import { SEVERITY_COLORS } from "@/lib/utils/severity";
 
 interface Props {
   severity: SeverityLevel;

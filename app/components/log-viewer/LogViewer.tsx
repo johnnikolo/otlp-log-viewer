@@ -1,19 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import { useLogsQuery } from "@/lib/useLogsQuery";
 import { DEFAULT_TIME_RANGE_MS, filterByTimeRange } from "@/lib/timeRange";
-import { getSeverityCounts } from "@/lib/utils";
-import { Histogram } from "./histogram/Histogram";
-import { HistogramSkeleton } from "./histogram/HistogramSkeleton";
-import { SeverityLegend } from "./histogram/SeverityLegend";
-import { LogTable } from "./table/LogTable";
-import { TableSkeleton } from "./table/TableSkeleton";
-import { GroupedLogView } from "./GroupedLogView";
+import { getSeverityCounts } from "@/lib/utils/severity";
 import { LogViewerHeader } from "./LogViewerHeader";
 import { ViewMode } from "./controls/ViewModeToggle";
-import { ErrorOverlay } from "../ui/ErrorOverlay";
+import { HistogramPanel } from "./histogram/HistogramPanel";
+import { LogListPanel } from "./LogListPanel";
 
 export function LogViewer() {
   const [viewMode, setViewMode] = useState<ViewMode>("flat");
@@ -50,63 +44,20 @@ export function LogViewer() {
       />
 
       <div className="flex-1 min-h-0 px-6 py-4 flex flex-col gap-4">
-        {/* Histogram */}
-        <div className="flex-shrink-0 bg-surface border border-line dark:bg-surface-dark dark:border-line-dark rounded-lg px-4 pt-3 pb-2">
-          {isLoading ? (
-            <>
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-2">
-                Log Distribution
-              </p>
-              <div className="h-28 flex items-center justify-center text-gray-400 dark:text-gray-600 text-xs">
-                Loading…
-              </div>
-            </>
-          ) : isError ? (
-            <>
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-2">
-                Log Distribution
-              </p>
-              <ErrorOverlay
-                skeleton={<HistogramSkeleton />}
-                onRetry={() => refetch()}
-                textSize="xs"
-              />
-            </>
-          ) : (
-            <>
-              <Histogram records={records} rangeMs={rangeMs} />
-              <SeverityLegend />
-            </>
-          )}
-        </div>
-
-        {/* Log list */}
-        <div className="flex-1 min-h-0 flex flex-col bg-surface border border-line dark:bg-surface-dark dark:border-line-dark rounded-lg overflow-hidden">
-          {isLoading && (
-            <div className="py-16 text-center text-gray-400 text-sm">
-              <ReloadIcon className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-400" />
-              Fetching logs…
-            </div>
-          )}
-
-          {isError && (
-            <ErrorOverlay
-              skeleton={<TableSkeleton />}
-              onRetry={() => refetch()}
-              className="relative flex-1 min-h-0 overflow-hidden"
-            />
-          )}
-
-          {!isLoading && !isError && viewMode === "flat" && (
-            <LogTable records={records} />
-          )}
-
-          {!isLoading && !isError && viewMode === "grouped" && (
-            <div className="flex-1 min-h-0 p-4 overflow-y-auto">
-              <GroupedLogView records={records} />
-            </div>
-          )}
-        </div>
+        <HistogramPanel
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={refetch}
+          records={records}
+          rangeMs={rangeMs}
+        />
+        <LogListPanel
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={refetch}
+          viewMode={viewMode}
+          records={records}
+        />
       </div>
     </div>
   );

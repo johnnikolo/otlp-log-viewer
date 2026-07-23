@@ -1,5 +1,4 @@
 import { NormalizedLogRecord, SeverityLevel } from "@/types/otlp";
-import { formatDistanceToNow, format } from "date-fns";
 
 // Severity → Tailwind color classes
 export const SEVERITY_COLORS: Record<
@@ -101,35 +100,4 @@ export function getSeverityCounts(records: NormalizedLogRecord[]): {
     else if (isWarnSeverity(record.severityNumber)) warnCount++;
   }
   return { errorCount, warnCount };
-}
-
-export function formatTimestamp(ms: number): string {
-  return format(new Date(ms), "HH:mm:ss.SSS");
-}
-
-export function formatRelativeTime(ms: number): string {
-  return formatDistanceToNow(new Date(ms), { addSuffix: true });
-}
-
-export function formatFullTimestamp(ms: number): string {
-  return format(new Date(ms), "yyyy-MM-dd HH:mm:ss.SSS");
-}
-
-// Compact large counts for the header stats (e.g. 141234 -> "141K")
-const compactNumberFormatter = new Intl.NumberFormat("en", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-export function formatCompactNumber(n: number): string {
-  return compactNumberFormatter.format(n);
-}
-
-// Try to pretty-print JSON; fall back to raw string
-export function prettyPrintJson(str: string): string {
-  try {
-    return JSON.stringify(JSON.parse(str), null, 2);
-  } catch {
-    return str;
-  }
 }

@@ -5,7 +5,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { LogViewer } from "./LogViewer";
 import { fetchLogs } from "@/lib/api";
 import { exportRequest, logRecord } from "@/lib/__fixtures__/otlp";
-import { ALL_SEVERITY_LEVELS } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS } from "@/lib/utils/severity";
 
 jest.mock("@/lib/api");
 const mockFetchLogs = fetchLogs as jest.MockedFunction<typeof fetchLogs>;
@@ -41,7 +41,10 @@ describe("LogViewer", () => {
           serviceName: "checkout",
           records: [
             logRecord({ body: { stringValue: "order placed" } }),
-            logRecord({ body: { stringValue: "payment failed" }, severityNumber: 19 }),
+            logRecord({
+              body: { stringValue: "payment failed" },
+              severityNumber: 19,
+            }),
           ],
         },
       ]),
@@ -54,7 +57,8 @@ describe("LogViewer", () => {
     // and "1 error & fatal".
     expect(
       screen.getByText(
-        (_, node) => node?.textContent?.replace(/\s+/g, " ").trim() === "Showing 2 logs",
+        (_, node) =>
+          node?.textContent?.replace(/\s+/g, " ").trim() === "Showing 2 logs",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/error & fatal/)).toBeInTheDocument();
@@ -68,7 +72,8 @@ describe("LogViewer", () => {
     await screen.findByText(/Showing/);
 
     // Scoped to the histogram card to avoid colliding with table's severity badges.
-    const histogramCard = container.querySelectorAll<HTMLElement>(".bg-surface")[1];
+    const histogramCard =
+      container.querySelectorAll<HTMLElement>(".bg-surface")[1];
     for (const level of ALL_SEVERITY_LEVELS) {
       expect(
         within(histogramCard).getByText(level, { selector: "span" }),
@@ -94,13 +99,17 @@ describe("LogViewer", () => {
     // passes "relative ... overflow-hidden" (see LogViewer.tsx). Use that to
     // confirm the *correct* skeleton renders in each, not just "a" skeleton
     // somewhere on the page.
-    const histogramOverlay = container.querySelector(".relative:not(.overflow-hidden)");
+    const histogramOverlay = container.querySelector(
+      ".relative:not(.overflow-hidden)",
+    );
     const tableOverlay = container.querySelector(".relative.overflow-hidden");
     expect(histogramOverlay).toBeInTheDocument();
     expect(tableOverlay).toBeInTheDocument();
 
     // HistogramSkeleton renders a fixed 24 placeholder bars (BAR_HEIGHTS_PCT.length).
-    expect(histogramOverlay!.querySelectorAll(".animate-pulse")).toHaveLength(24);
+    expect(histogramOverlay!.querySelectorAll(".animate-pulse")).toHaveLength(
+      24,
+    );
     // TableSkeleton renders 40 placeholder rows x 4 bars each (severity/time/service/body).
     expect(tableOverlay!.querySelectorAll(".animate-pulse")).toHaveLength(160);
   });
@@ -109,11 +118,16 @@ describe("LogViewer", () => {
     mockFetchLogs.mockRejectedValueOnce(new Error("network down"));
     renderLogViewer();
 
-    const retryButtons = await screen.findAllByRole("button", { name: "Retry" });
+    const retryButtons = await screen.findAllByRole("button", {
+      name: "Retry",
+    });
 
     mockFetchLogs.mockResolvedValueOnce(
       exportRequest([
-        { serviceName: "svc", records: [logRecord({ body: { stringValue: "recovered" } })] },
+        {
+          serviceName: "svc",
+          records: [logRecord({ body: { stringValue: "recovered" } })],
+        },
       ]),
     );
     await userEvent.setup().click(retryButtons[0]);
@@ -125,7 +139,10 @@ describe("LogViewer", () => {
   it("switches between flat and grouped views", async () => {
     mockFetchLogs.mockResolvedValue(
       exportRequest([
-        { serviceName: "svc-a", records: [logRecord({ body: { stringValue: "log from a" } })] },
+        {
+          serviceName: "svc-a",
+          records: [logRecord({ body: { stringValue: "log from a" } })],
+        },
       ]),
     );
     const user = userEvent.setup();
@@ -147,9 +164,13 @@ describe("LogViewer", () => {
     });
     const old = logRecord({
       body: { stringValue: "ancient log" },
-      timeUnixNano: String(BigInt(now - 30 * 24 * 60 * 60 * 1000) * BigInt(1_000_000)), // 30 days ago
+      timeUnixNano: String(
+        BigInt(now - 30 * 24 * 60 * 60 * 1000) * BigInt(1_000_000),
+      ), // 30 days ago
     });
-    mockFetchLogs.mockResolvedValue(exportRequest([{ serviceName: "svc", records: [recent, old] }]));
+    mockFetchLogs.mockResolvedValue(
+      exportRequest([{ serviceName: "svc", records: [recent, old] }]),
+    );
     const user = userEvent.setup();
     renderLogViewer();
 
@@ -163,7 +184,9 @@ describe("LogViewer", () => {
     await user.click(screen.getByLabelText("Time range"));
     await user.click(screen.getByRole("option", { name: "1h" }));
 
-    await waitFor(() => expect(screen.queryByText("ancient log")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText("ancient log")).not.toBeInTheDocument(),
+    );
     expect(screen.getByText("recent log")).toBeInTheDocument();
   });
 });
