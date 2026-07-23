@@ -170,14 +170,14 @@ export function transformLogs(
   const records: NormalizedLogRecord[] = [];
   let index = 0;
 
-  for (const resourceLog of response.resourceLogs) {
+  for (const resourceLog of response.resourceLogs ?? []) {
     const resourceAttrs = resourceLog.resource?.attributes ?? [];
     const serviceName = findAttribute(resourceAttrs, "service.name");
     const serviceNamespace = findAttribute(resourceAttrs, "service.namespace");
     const serviceVersion = findAttribute(resourceAttrs, "service.version");
 
-    for (const scopeLog of resourceLog.scopeLogs) {
-      for (const record of scopeLog.logRecords) {
+    for (const scopeLog of resourceLog.scopeLogs ?? []) {
+      for (const record of scopeLog.logRecords ?? []) {
         const timestampMs = resolveTimestampMs(
           record.timeUnixNano,
           record.observedTimeUnixNano,
@@ -247,7 +247,10 @@ export interface TimeBucket {
 function formatBucketBoundary(ms: number, showDate: boolean): string {
   return showDate
     ? new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" })
-    : new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    : new Date(ms).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 }
 
 function emptySeverityCounts(): Record<SeverityLevel, number> {

@@ -60,9 +60,7 @@ describe("extractAttributeValue", () => {
   });
 
   it("extracts bytesValue", () => {
-    expect(extractAttributeValue({ bytesValue: "aGVsbG8=" })).toBe(
-      "aGVsbG8=",
-    );
+    expect(extractAttributeValue({ bytesValue: "aGVsbG8=" })).toBe("aGVsbG8=");
   });
 
   it("stringifies arrayValue instead of dropping it", () => {
@@ -71,7 +69,9 @@ describe("extractAttributeValue", () => {
   });
 
   it("stringifies kvlistValue instead of dropping it", () => {
-    const value = { kvlistValue: { values: [attr("k", { stringValue: "v" })] } };
+    const value = {
+      kvlistValue: { values: [attr("k", { stringValue: "v" })] },
+    };
     expect(extractAttributeValue(value)).toBe(JSON.stringify(value));
   });
 
@@ -167,11 +167,19 @@ describe("transformLogs", () => {
     const request = exportRequest([
       {
         serviceName: "svc-a",
-        records: [logRecord({ timeUnixNano: String(BigInt(1_000) * BigInt(1_000_000)) })],
+        records: [
+          logRecord({
+            timeUnixNano: String(BigInt(1_000) * BigInt(1_000_000)),
+          }),
+        ],
       },
       {
         serviceName: "svc-b",
-        records: [logRecord({ timeUnixNano: String(BigInt(5_000) * BigInt(1_000_000)) })],
+        records: [
+          logRecord({
+            timeUnixNano: String(BigInt(5_000) * BigInt(1_000_000)),
+          }),
+        ],
       },
     ]);
     const result = transformLogs(request);
@@ -192,6 +200,22 @@ describe("transformLogs", () => {
     ]);
     const result = transformLogs(request);
     expect(result[0].id).not.toBe(result[1].id);
+  });
+
+  it("tolerates a malformed response missing resourceLogs entirely", () => {
+    expect(transformLogs({} as Parameters<typeof transformLogs>[0])).toEqual(
+      [],
+    );
+  });
+
+  it("tolerates a resourceLog missing scopeLogs, and a scopeLog missing logRecords", () => {
+    const request = {
+      resourceLogs: [
+        { resource: { attributes: [] } },
+        { resource: { attributes: [] }, scopeLogs: [{ scope: { name: "s" } }] },
+      ],
+    } as unknown as Parameters<typeof transformLogs>[0];
+    expect(transformLogs(request)).toEqual([]);
   });
 });
 
@@ -223,7 +247,10 @@ describe("groupByService", () => {
 });
 
 describe("bucketByTime", () => {
-  const mk = (timestampMs: number, severityNumber = 9): NormalizedLogRecord => ({
+  const mk = (
+    timestampMs: number,
+    severityNumber = 9,
+  ): NormalizedLogRecord => ({
     id: Math.random().toString(),
     timestampMs,
     severityText: severityNumber >= 17 ? "ERROR" : "INFO",

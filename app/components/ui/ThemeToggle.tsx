@@ -8,7 +8,12 @@ type Theme = "light" | "dark";
 
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("theme", theme);
+  try {
+    localStorage.setItem("theme", theme);
+  } catch {
+    // Private-browsing/storage-restricted contexts can throw on write; the
+    // theme still applies for this session, it just won't persist.
+  }
 }
 
 export function ThemeToggle() {
@@ -16,7 +21,9 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+    setTheme(
+      document.documentElement.classList.contains("dark") ? "dark" : "light",
+    );
     setMounted(true);
   }, []);
 

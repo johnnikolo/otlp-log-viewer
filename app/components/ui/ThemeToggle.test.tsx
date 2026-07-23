@@ -46,4 +46,21 @@ describe("ThemeToggle", () => {
     );
     expect(localStorage.getItem("theme")).toBe("dark");
   });
+
+  it("still applies the theme to the html class even if localStorage.setItem throws", async () => {
+    const setItemSpy = jest
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("storage restricted");
+      });
+    render(<ThemeToggle />);
+    const toggle = await screen.findByRole("button", { name: "Toggle theme" });
+
+    fireEvent.click(toggle);
+
+    await waitFor(() =>
+      expect(document.documentElement.classList.contains("dark")).toBe(true),
+    );
+    setItemSpy.mockRestore();
+  });
 });
