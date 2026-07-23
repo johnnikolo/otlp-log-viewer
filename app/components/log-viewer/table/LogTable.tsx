@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -24,7 +24,7 @@ interface Props {
   maxHeight?: number;
 }
 
-export function LogTable({ records, maxHeight }: Props) {
+function LogTableImpl({ records, maxHeight }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "time", desc: true },
@@ -150,3 +150,8 @@ export function LogTable({ records, maxHeight }: Props) {
     </div>
   );
 }
+
+// Memoized: with a stable `records` reference (see LogViewer), unrelated parent
+// re-renders skip rebuilding the table row model + virtualizer. Internal state
+// (sorting, expanded row) still re-renders normally.
+export const LogTable = memo(LogTableImpl);

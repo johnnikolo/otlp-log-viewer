@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { fetchLogs } from "@/lib/api";
@@ -37,10 +37,20 @@ export function LogViewer() {
     refetchInterval: autoRefreshMs ?? false,
   });
 
-  const records = filterByTimeRange(allRecords, rangeMs);
+  // Memoized so the filtered array keeps a stable reference across renders that
+  // don't touch the data or range (e.g. isFetching toggling on every refetch).
+  // This is what lets the memoized Histogram/LogTable/GroupedLogView below
+  // actually skip work instead of re-rendering on every auto-refresh tick.
+  const records = useMemo(
+    () => filterByTimeRange(allRecords, rangeMs),
+    [allRecords, rangeMs],
+  );
 
   const totalCount = records.length;
-  const { errorCount, warnCount } = getSeverityCounts(records);
+  const { errorCount, warnCount } = useMemo(
+    () => getSeverityCounts(records),
+    [records],
+  );
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">

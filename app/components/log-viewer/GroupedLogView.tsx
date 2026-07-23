@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { NormalizedLogRecord } from "@/types/otlp";
@@ -73,18 +74,19 @@ function ServiceGroup({
   );
 }
 
-export function GroupedLogView({ records }: Props) {
-  const groups = groupByService(records);
-
-  // Sort groups by highest severity first, then by log count
-  const sortedGroups = Array.from(groups.entries()).sort(
-    ([, aRecs], [, bRecs]) => {
+function GroupedLogViewImpl({ records }: Props) {
+  // Sort groups by highest severity first, then by log count. Memoized so the
+  // grouping + sort only reruns when records actually change, not on every
+  // unrelated parent re-render
+  const sortedGroups = useMemo(() => {
+    const groups = groupByService(records);
+    return Array.from(groups.entries()).sort(([, aRecs], [, bRecs]) => {
       const aTop = Math.max(...aRecs.map((r) => r.severityNumber));
       const bTop = Math.max(...bRecs.map((r) => r.severityNumber));
       if (bTop !== aTop) return bTop - aTop;
       return bRecs.length - aRecs.length;
-    },
-  );
+    });
+  }, [records]);
 
   return (
     <Accordion.Root type="single" collapsible>
@@ -98,3 +100,7 @@ export function GroupedLogView({ records }: Props) {
     </Accordion.Root>
   );
 }
+
+// Memoized: only prop is `records`, so a stable reference lets unrelated parent
+// re-renders skip the grouping, sort, and every nested per-group LogTable.
+export const GroupedLogView = memo(GroupedLogViewImpl);

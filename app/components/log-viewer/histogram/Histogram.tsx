@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { memo, useMemo } from "react";
 import { bucketByTime } from "@/lib/transform";
 import { resolveWindowMs, getRangeLabel } from "@/lib/timeRange";
 import { NormalizedLogRecord } from "@/types/otlp";
@@ -19,9 +20,22 @@ interface Props {
   rangeMs: number | null;
 }
 
-export function Histogram({ records, rangeMs }: Props) {
-  const windowMs = resolveWindowMs(rangeMs, records);
-  const buckets = bucketByTime(records, windowMs, 24);
+const BAR_COLOR = {
+  clean: "#6366f1", // indigo-500 — no errors in this bucket
+  someErrors: "#f97316", // orange-500 — errors are a minority
+  mostlyErrors: "#ef4444", // red-500 — errors are the majority
+};
+
+function barColor(errors: number, count: number): string {
+  if (errors === 0) return BAR_COLOR.clean;
+  return errors / count > 0.5 ? BAR_COLOR.mostlyErrors : BAR_COLOR.someErrors;
+}
+
+function HistogramImpl({ records, rangeMs }: Props) {
+  const buckets = useMemo(() => {
+    const windowMs = resolveWindowMs(rangeMs, records);
+    return bucketByTime(records, windowMs, 24);
+  }, [records, rangeMs]);
 
   return (
     <div>
@@ -49,18 +63,15 @@ export function Histogram({ records, rangeMs }: Props) {
               axisLine={false}
               allowDecimals={false}
             />
-            <Tooltip content={<HistogramTooltip />} cursor={{ fill: "rgba(99,102,241,0.08)" }} />
+            <Tooltip
+              content={<HistogramTooltip />}
+              cursor={{ fill: "rgba(99,102,241,0.08)" }}
+            />
             <Bar dataKey="count" radius={[2, 2, 0, 0]}>
               {buckets.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={
-                    entry.errors > 0
-                      ? entry.errors / entry.count > 0.5
-                        ? "#ef4444" // mostly errors: red
-                        : "#f97316" // some errors: orange
-                      : "#6366f1" // no errors: indigo
-                  }
+                  fill={barColor(entry.errors, entry.count)}
                 />
               ))}
             </Bar>
@@ -70,3 +81,7 @@ export function Histogram({ records, rangeMs }: Props) {
     </div>
   );
 }
+
+// Memoized: props are just records + rangeMs, so unrelated LogViewer re-renders
+// (e.g. isFetching toggling) skip re-rendering the recharts tree entirely.
+export const Histogram = memo(HistogramImpl);
