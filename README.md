@@ -114,3 +114,17 @@ npm test
 ```
 
 Covers the transform/utility layer (severity mapping, timestamp parsing, bucketing, grouping) and every component (rendering, sorting, row expansion, view switching, time-range filtering, error/retry flows, theme toggling).
+
+## 🧭 What I'd do next
+
+Given more time, the areas I'd extend:
+
+- **Filtering** — quick filters by severity, service, and attribute key/value to narrow the list without leaving the page.
+- **Full-text search** — search across log bodies and attributes, with match highlighting.
+- **Shareable views** — encode UI state (time range, view mode, filters, search, expanded row) into the URL so a specific view can be linked and restored.
+- **Per-service distribution over time** — today the histogram is global (stacked by severity) and the grouped view shows per-service totals, but not how each service trends over time. A histogram stacked/colored by service, or per-group sparklines, would close that gap.
+- **Virtualized grouped view** — the flat table is virtualized, but expanded accordion groups render all their rows; virtualizing them would keep very large groups smooth.
+- **Server-side querying / pagination** — the app currently fetches the full dataset; for production volumes, filtering, search, and paging would move server-side.
+- **Streaming live tail** — auto-refresh already polls on an interval; a push-based stream (SSE/WebSocket) with incremental appending and auto-scroll would make following logs truly real-time.
+- **Export** — download the filtered/searched result set as JSON or CSV.
+- **Trace correlation** — deep-link trace/span IDs out to a trace viewer.
