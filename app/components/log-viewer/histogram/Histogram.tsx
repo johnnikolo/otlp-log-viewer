@@ -1,34 +1,16 @@
 "use client";
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { memo, useMemo } from "react";
 import { bucketByTime } from "@/lib/transform";
 import { resolveWindowMs, getRangeLabel } from "@/lib/timeRange";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
 import { NormalizedLogRecord } from "@/types/otlp";
 import { HistogramTooltip } from "./HistogramTooltip";
 
 interface Props {
   records: NormalizedLogRecord[];
   rangeMs: number | null;
-}
-
-const BAR_COLOR = {
-  clean: "#6366f1", // indigo-500 — no errors in this bucket
-  someErrors: "#f97316", // orange-500 — errors are a minority
-  mostlyErrors: "#ef4444", // red-500 — errors are the majority
-};
-
-function barColor(errors: number, count: number): string {
-  if (errors === 0) return BAR_COLOR.clean;
-  return errors / count > 0.5 ? BAR_COLOR.mostlyErrors : BAR_COLOR.someErrors;
 }
 
 function HistogramImpl({ records, rangeMs }: Props) {
@@ -67,14 +49,15 @@ function HistogramImpl({ records, rangeMs }: Props) {
               content={<HistogramTooltip />}
               cursor={{ fill: "rgba(99,102,241,0.08)" }}
             />
-            <Bar dataKey="count" radius={[2, 2, 0, 0]}>
-              {buckets.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={barColor(entry.errors, entry.count)}
-                />
-              ))}
-            </Bar>
+            {/* One series per severity, stacked most-severe-first. */}
+            {ALL_SEVERITY_LEVELS.map((level) => (
+              <Bar
+                key={level}
+                dataKey={`bySeverity.${level}`}
+                stackId="severity"
+                fill={SEVERITY_HEX[level]}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </div>

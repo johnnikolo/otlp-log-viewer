@@ -250,7 +250,7 @@ describe("bucketByTime", () => {
     expect(lastBucket.time + bucketSize).toBe(newest);
   });
 
-  it("counts records into the correct bucket and tallies errors", () => {
+  it("counts records into the correct bucket, broken down by severity", () => {
     const newest = 1_000_000;
     const records = [
       mk(newest, 19), // ERROR, falls in the last bucket
@@ -259,7 +259,9 @@ describe("bucketByTime", () => {
     const buckets = bucketByTime(records, 1_000_000, 10);
     const lastBucket = buckets[buckets.length - 1];
     expect(lastBucket.count).toBe(2);
-    expect(lastBucket.errors).toBe(1);
+    expect(lastBucket.bySeverity.ERROR).toBe(1);
+    expect(lastBucket.bySeverity.INFO).toBe(1);
+    expect(lastBucket.bySeverity.WARN).toBe(0);
   });
 
   it("drops records that fall outside the requested window", () => {
@@ -268,5 +270,20 @@ describe("bucketByTime", () => {
     const buckets = bucketByTime(records, 1_000_000, 10);
     const totalCounted = buckets.reduce((sum, b) => sum + b.count, 0);
     expect(totalCounted).toBe(1);
+  });
+
+  it("computes an exact [time, endTime) range and matching labels per bucket", () => {
+    const newest = 1_000_000;
+    const records = [mk(newest)];
+    const bucketCount = 10;
+    const windowMs = 1_000_000;
+    const bucketSize = windowMs / bucketCount;
+    const buckets = bucketByTime(records, windowMs, bucketCount);
+
+    expect(buckets).toHaveLength(bucketCount);
+    buckets.forEach((bucket, i) => {
+      expect(bucket.endTime).toBe(bucket.time + bucketSize);
+      if (i > 0) expect(bucket.time).toBe(buckets[i - 1].endTime);
+    });
   });
 });

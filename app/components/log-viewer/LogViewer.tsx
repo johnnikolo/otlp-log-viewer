@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { fetchLogs } from "@/lib/api";
-import { transformLogs } from "@/lib/transform";
+import { useLogsQuery } from "@/lib/useLogsQuery";
 import { DEFAULT_TIME_RANGE_MS, filterByTimeRange } from "@/lib/timeRange";
 import { getSeverityCounts } from "@/lib/utils";
 import { Histogram } from "./histogram/Histogram";
 import { HistogramSkeleton } from "./histogram/HistogramSkeleton";
+import { SeverityLegend } from "./histogram/SeverityLegend";
 import { LogTable } from "./table/LogTable";
 import { TableSkeleton } from "./table/TableSkeleton";
 import { GroupedLogView } from "./GroupedLogView";
@@ -18,24 +17,10 @@ import { ErrorOverlay } from "../ui/ErrorOverlay";
 
 export function LogViewer() {
   const [viewMode, setViewMode] = useState<ViewMode>("flat");
-  const [autoRefreshMs, setAutoRefreshMs] = useState<number | null>(null);
   const [rangeMs, setRangeMs] = useState<number | null>(DEFAULT_TIME_RANGE_MS);
 
-  const {
-    data: allRecords = [],
-    isLoading,
-    isError,
-    refetch,
-    isFetching,
-    dataUpdatedAt,
-  } = useQuery({
-    queryKey: ["logs"],
-    queryFn: fetchLogs,
-    select: transformLogs,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-    refetchInterval: autoRefreshMs ?? false,
-  });
+  // isFetching/dataUpdatedAt/auto-refresh live in LogViewerHeader's own query call.
+  const { data: allRecords = [], isLoading, isError, refetch } = useLogsQuery();
 
   // Memoized so the filtered array keeps a stable reference across renders that
   // don't touch the data or range (e.g. isFetching toggling on every refetch).
@@ -55,19 +40,13 @@ export function LogViewer() {
   return (
     <div className="h-screen flex flex-col bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <LogViewerHeader
-        isLoading={isLoading}
         totalCount={totalCount}
         errorCount={errorCount}
         warnCount={warnCount}
-        dataUpdatedAt={dataUpdatedAt}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         rangeMs={rangeMs}
         onRangeChange={setRangeMs}
-        onRefresh={() => refetch()}
-        isFetching={isFetching}
-        autoRefreshMs={autoRefreshMs}
-        onAutoRefreshChange={setAutoRefreshMs}
       />
 
       <div className="flex-1 min-h-0 px-6 py-4 flex flex-col gap-4">
@@ -94,7 +73,10 @@ export function LogViewer() {
               />
             </>
           ) : (
-            <Histogram records={records} rangeMs={rangeMs} />
+            <>
+              <Histogram records={records} rangeMs={rangeMs} />
+              <SeverityLegend />
+            </>
           )}
         </div>
 

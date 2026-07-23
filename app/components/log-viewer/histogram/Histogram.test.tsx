@@ -1,12 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Histogram } from "./Histogram";
-import { NormalizedLogRecord } from "@/types/otlp";
+import { NormalizedLogRecord, SeverityLevel } from "@/types/otlp";
+import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils";
 
-const mk = (timestampMs: number, severityNumber = 9): NormalizedLogRecord => ({
+// bucketByTime buckets by severityText directly (not derived from
+// severityNumber here), so tests pass the level they actually want.
+const mk = (timestampMs: number, severityText: SeverityLevel = "INFO"): NormalizedLogRecord => ({
   id: Math.random().toString(),
   timestampMs,
-  severityText: severityNumber >= 17 ? "ERROR" : "INFO",
-  severityNumber,
+  severityText,
+  severityNumber: 0,
   body: "x",
   bodyType: "text",
   attributes: [],
@@ -16,10 +19,11 @@ const mk = (timestampMs: number, severityNumber = 9): NormalizedLogRecord => ({
 });
 
 // recharts (via react-smooth) animates bars in on mount and skips drawing a
-// rectangle at all for a zero-height (empty) bucket - so the number of
-// .recharts-rectangle elements equals the number of *non-empty* buckets, not
-// the fixed bucketCount, and only appears after the entrance animation's
-// first tick. waitFor lets that pending timer flush before asserting.
+// rectangle at all for a zero-height (empty) series - so the number of
+// .recharts-rectangle elements equals the number of *non-empty* severity
+// segments across all buckets, not a fixed count, and only appears after the
+// entrance animation's first tick. waitFor lets that pending timer flush
+// before asserting.
 async function waitForBars(container: HTMLElement, count: number) {
   await waitFor(() => {
     expect(container.querySelectorAll(".recharts-rectangle")).toHaveLength(count);
@@ -49,40 +53,54 @@ describe("Histogram", () => {
     expect(container.querySelectorAll(".recharts-rectangle")).toHaveLength(0);
   });
 
-  it("draws one bar for a single populated bucket", async () => {
+  it("draws one segment for a single populated bucket with one severity", async () => {
     const { container } = render(
       <Histogram records={[mk(Date.now())]} rangeMs={60 * 60 * 1000} />,
     );
     await waitForBars(container, 1);
   });
 
-  it("draws a separate bar per distinct bucket", async () => {
+  it("draws a separate segment per distinct bucket", async () => {
     const now = Date.now();
     const records = [mk(now), mk(now - 30 * 60 * 1000)]; // ~30 min apart, 1h window / 24 buckets
     const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
     await waitForBars(container, 2);
   });
 
-  it("colors a clean bucket indigo and a majority-error bucket red", async () => {
+  it("stacks a second segment in the same bucket when it holds more than one severity", async () => {
     const now = Date.now();
-    const records = [mk(now, 17), mk(now, 17), mk(now - 700_000, 9)]; // separate buckets
+    // Same bucket, two different severities -> two stacked segments, not one.
+    const records = [mk(now, "INFO"), mk(now, "ERROR")];
     const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
     await waitForBars(container, 2);
 
     const fills = Array.from(container.querySelectorAll(".recharts-rectangle")).map((r) =>
       r.getAttribute("fill"),
     );
-    expect(fills).toContain("#6366f1"); // clean bucket
-    expect(fills).toContain("#ef4444"); // 2/2 errors in that bucket -> mostly-errors
+    expect(fills).toContain(SEVERITY_HEX.INFO);
+    expect(fills).toContain(SEVERITY_HEX.ERROR);
   });
 
-  it("colors a minority-error bucket orange, not red", async () => {
+  it("colors every one of the 7 severities with its own fixed color, stacked most-severe-first", async () => {
     const now = Date.now();
-    const records = [mk(now, 17), mk(now, 9), mk(now, 9)]; // 1/3 errors -> not majority
+    // One record per severity, all in the same bucket -> 7 stacked segments.
+    const records = ALL_SEVERITY_LEVELS.map((level) => mk(now, level));
     const { container } = render(<Histogram records={records} rangeMs={60 * 60 * 1000} />);
-    await waitForBars(container, 1);
+    await waitForBars(container, ALL_SEVERITY_LEVELS.length);
 
-    const fill = container.querySelector(".recharts-rectangle")?.getAttribute("fill");
-    expect(fill).toBe("#f97316");
+    const rects = Array.from(container.querySelectorAll(".recharts-rectangle"));
+
+    // DOM order matches ALL_SEVERITY_LEVELS (most severe first) - proves
+    // Histogram renders <Bar> series in that order, not resorted/reversed.
+    expect(rects.map((r) => r.getAttribute("fill"))).toEqual(
+      ALL_SEVERITY_LEVELS.map((level) => SEVERITY_HEX[level]),
+    );
+
+    // Each next segment's y is smaller (higher up the chart) than the last,
+    // confirming the most severe segment (FATAL) sits closest to the baseline.
+    const ys = rects.map((r) => Number(r.getAttribute("y")));
+    for (let i = 1; i < ys.length; i++) {
+      expect(ys[i]).toBeLessThan(ys[i - 1]);
+    }
   });
 });

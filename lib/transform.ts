@@ -7,7 +7,7 @@ import {
   SeverityLevel,
   BodyType,
 } from "@/types/otlp";
-import { isErrorSeverity } from "@/lib/utils";
+import { ALL_SEVERITY_LEVELS } from "@/lib/utils";
 
 // BigInt nanoseconds → milliseconds, safely (avoids precision loss).
 // Returns null for missing/invalid input rather than a fallback value, so
@@ -236,10 +236,24 @@ export function groupByService(
 }
 
 export interface TimeBucket {
-  time: number;
-  label: string;
+  time: number; // bucket start, ms
+  endTime: number; // bucket end, ms
+  label: string; // formatted start, for the X-axis tick
+  endLabel: string; // formatted end, for the tooltip's exact time range
   count: number;
-  errors: number;
+  bySeverity: Record<SeverityLevel, number>;
+}
+
+function formatBucketBoundary(ms: number, showDate: boolean): string {
+  return showDate
+    ? new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" })
+    : new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function emptySeverityCounts(): Record<SeverityLevel, number> {
+  const counts = {} as Record<SeverityLevel, number>;
+  for (const level of ALL_SEVERITY_LEVELS) counts[level] = 0;
+  return counts;
 }
 
 // Bucket records into time windows for the histogram. windowMs is owned by
@@ -270,19 +284,14 @@ export function bucketByTime(
 
   const buckets = Array.from({ length: bucketCount }, (_, i) => {
     const bucketStart = start + i * bucketSize;
+    const bucketEnd = bucketStart + bucketSize;
     return {
       time: bucketStart,
-      label: showDate
-        ? new Date(bucketStart).toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-          })
-        : new Date(bucketStart).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+      endTime: bucketEnd,
+      label: formatBucketBoundary(bucketStart, showDate),
+      endLabel: formatBucketBoundary(bucketEnd, showDate),
       count: 0,
-      errors: 0,
+      bySeverity: emptySeverityCounts(),
     };
   });
 
@@ -295,9 +304,7 @@ export function bucketByTime(
     const idx = Math.min(Math.floor(offset / bucketSize), bucketCount - 1);
     if (idx >= 0) {
       buckets[idx].count++;
-      if (isErrorSeverity(record.severityNumber)) {
-        buckets[idx].errors++;
-      }
+      buckets[idx].bySeverity[record.severityText]++;
     }
   }
 

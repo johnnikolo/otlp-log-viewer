@@ -1,43 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import { FileTextIcon } from "@radix-ui/react-icons";
 import { formatCompactNumber } from "@/lib/utils";
+import { useLogsQuery } from "@/lib/useLogsQuery";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { RefreshControl } from "./controls/RefreshControl";
 import { TimeRangePicker } from "./controls/TimeRangePicker";
 import { ViewModeToggle, ViewMode } from "./controls/ViewModeToggle";
 
 interface Props {
-  isLoading: boolean;
   totalCount: number;
   errorCount: number;
   warnCount: number;
-  dataUpdatedAt: number;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   rangeMs: number | null;
   onRangeChange: (ms: number | null) => void;
-  onRefresh: () => void;
-  isFetching: boolean;
-  autoRefreshMs: number | null;
-  onAutoRefreshChange: (ms: number | null) => void;
 }
 
 export function LogViewerHeader({
-  isLoading,
   totalCount,
   errorCount,
   warnCount,
-  dataUpdatedAt,
   viewMode,
   onViewModeChange,
   rangeMs,
   onRangeChange,
-  onRefresh,
-  isFetching,
-  autoRefreshMs,
-  onAutoRefreshChange,
 }: Props) {
+  const [autoRefreshMs, setAutoRefreshMs] = useState<number | null>(null);
+  // Shares LogViewer's cache entry - no extra fetch.
+  const { isLoading, isFetching, dataUpdatedAt, refetch } = useLogsQuery(
+    autoRefreshMs ?? false,
+  );
+
   return (
     <header className="flex-shrink-0 border-b border-line bg-surface dark:border-line-dark dark:bg-surface-dark px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
       <div className="flex items-center gap-2">
@@ -95,10 +91,10 @@ export function LogViewerHeader({
         <TimeRangePicker value={rangeMs} onChange={onRangeChange} />
 
         <RefreshControl
-          onRefresh={onRefresh}
+          onRefresh={() => refetch()}
           isFetching={isFetching}
           autoRefreshMs={autoRefreshMs}
-          onAutoRefreshChange={onAutoRefreshChange}
+          onAutoRefreshChange={setAutoRefreshMs}
         />
       </div>
     </header>

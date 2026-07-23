@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { LogViewer } from "./LogViewer";
 import { fetchLogs } from "@/lib/api";
 import { exportRequest, logRecord } from "@/lib/__fixtures__/otlp";
+import { ALL_SEVERITY_LEVELS } from "@/lib/utils";
 
 jest.mock("@/lib/api");
 const mockFetchLogs = fetchLogs as jest.MockedFunction<typeof fetchLogs>;
@@ -57,6 +58,22 @@ describe("LogViewer", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/error & fatal/)).toBeInTheDocument();
+  });
+
+  it("renders the severity color legend beneath the histogram once data loads", async () => {
+    mockFetchLogs.mockResolvedValue(
+      exportRequest([{ serviceName: "svc", records: [logRecord()] }]),
+    );
+    const { container } = renderLogViewer();
+    await screen.findByText(/Showing/);
+
+    // Scoped to the histogram card to avoid colliding with table's severity badges.
+    const histogramCard = container.querySelectorAll<HTMLElement>(".bg-surface")[1];
+    for (const level of ALL_SEVERITY_LEVELS) {
+      expect(
+        within(histogramCard).getByText(level, { selector: "span" }),
+      ).toBeInTheDocument();
+    }
   });
 
   it("shows the skeleton + retry overlay in both the histogram and table sections on fetch failure", async () => {
