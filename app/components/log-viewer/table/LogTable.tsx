@@ -54,7 +54,7 @@ function LogTableImpl({ records, maxHeight }: Props) {
 
   if (records.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">
+      <div className="text-center py-12 text-muted dark:text-muted-dark text-sm">
         No log records found.
       </div>
     );
@@ -73,7 +73,7 @@ function LogTableImpl({ records, maxHeight }: Props) {
           <div
             key={headerGroup.id}
             role="row"
-            className="sticky top-0 z-10 flex border-b border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-800/95 backdrop-blur-sm"
+            className="sticky top-0 z-10 flex border-b border-line bg-gray-50/80 dark:border-line-dark dark:bg-gray-800/95 backdrop-blur-sm"
           >
             <div
               style={{ width: CHEVRON_WIDTH }}

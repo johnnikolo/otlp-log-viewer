@@ -72,7 +72,7 @@ export function LogViewer() {
 
       <div className="flex-1 min-h-0 px-6 py-4 flex flex-col gap-4">
         {/* Histogram */}
-        <div className="flex-shrink-0 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 rounded-lg px-4 pt-3 pb-2">
+        <div className="flex-shrink-0 bg-surface border border-line dark:bg-surface-dark dark:border-line-dark rounded-lg px-4 pt-3 pb-2">
           {isLoading ? (
             <>
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-2">
@@ -99,7 +99,7 @@ export function LogViewer() {
         </div>
 
         {/* Log list */}
-        <div className="flex-1 min-h-0 flex flex-col bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 rounded-lg overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col bg-surface border border-line dark:bg-surface-dark dark:border-line-dark rounded-lg overflow-hidden">
           {isLoading && (
             <div className="py-16 text-center text-gray-400 text-sm">
               <ReloadIcon className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-400" />

@@ -18,7 +18,7 @@ export function LogRow({ row, expanded, onToggle }: Props) {
   const rowColor = SEVERITY_COLORS[record.severityText].row;
 
   return (
-    <div className="border-b border-gray-100 dark:border-gray-800">
+    <div className="border-b border-divider dark:border-divider-dark">
       <div
         role="row"
         tabIndex={0}

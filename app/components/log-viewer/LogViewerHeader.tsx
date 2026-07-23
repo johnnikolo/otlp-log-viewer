@@ -39,7 +39,7 @@ export function LogViewerHeader({
   onAutoRefreshChange,
 }: Props) {
   return (
-    <header className="flex-shrink-0 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+    <header className="flex-shrink-0 border-b border-line bg-surface dark:border-line-dark dark:bg-surface-dark px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
       <div className="flex items-center gap-2">
         {/* Logo mark */}
         <div className="w-6 h-6 rounded bg-indigo-500 flex items-center justify-center">
@@ -83,7 +83,7 @@ export function LogViewerHeader({
 
       <div className="w-full sm:w-auto sm:ml-auto flex items-center gap-3 flex-wrap">
         {dataUpdatedAt > 0 && (
-          <span className="text-xs text-gray-400 dark:text-gray-500 font-mono hidden sm:inline">
+          <span className="text-xs text-muted dark:text-muted-dark font-mono hidden sm:inline">
             Updated at {new Date(dataUpdatedAt).toLocaleTimeString()}
           </span>
         )}

@@ -31,7 +31,7 @@ export function TableSkeleton() {
       {Array.from({ length: ROW_COUNT }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center border-b border-gray-100 dark:border-gray-800 py-2.5"
+          className="flex items-center border-b border-divider dark:border-divider-dark py-2.5"
         >
           <div style={{ width: CHEVRON_WIDTH }} className="flex-shrink-0" />
           <div style={{ width: SEVERITY_WIDTH }} className="flex-shrink-0 pr-3">

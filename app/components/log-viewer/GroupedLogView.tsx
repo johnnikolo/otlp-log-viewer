@@ -34,7 +34,7 @@ function ServiceGroup({
   return (
     <Accordion.Item
       value={serviceName}
-      className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden mb-3"
+      className="border border-line dark:border-line-dark rounded-lg overflow-hidden mb-3"
     >
       <Accordion.Header>
         <Accordion.Trigger className="group w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/60 dark:hover:bg-gray-800 transition-colors text-left outline-none">
