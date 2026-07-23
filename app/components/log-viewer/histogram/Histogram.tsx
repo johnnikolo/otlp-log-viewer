@@ -33,7 +33,7 @@ function HistogramImpl({ records, rangeMs }: Props) {
       </p>
 
       <div className="w-full h-28">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" debounce={100}>
           <BarChart
             data={buckets}
             margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
@@ -63,6 +63,7 @@ function HistogramImpl({ records, rangeMs }: Props) {
                 dataKey={`bySeverity.${level}`}
                 stackId="severity"
                 fill={SEVERITY_HEX[level]}
+                isAnimationActive={false}
               />
             ))}
           </BarChart>

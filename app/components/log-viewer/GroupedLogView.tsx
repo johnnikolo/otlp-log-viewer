@@ -65,7 +65,7 @@ function ServiceGroup({
 
       {/* Log table for this group */}
       <Accordion.Content>
-        <LogTable records={records} maxHeight={360} />
+        <LogTable records={records} maxHeight={360} virtualized={false} />
       </Accordion.Content>
     </Accordion.Item>
   );

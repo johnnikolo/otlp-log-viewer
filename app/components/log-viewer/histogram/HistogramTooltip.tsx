@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { TimeBucket } from "@/lib/transform";
 import { ALL_SEVERITY_LEVELS, SEVERITY_HEX } from "@/lib/utils/severity";
 
@@ -8,7 +9,7 @@ interface Props {
   payload?: Array<{ payload: TimeBucket }>;
 }
 
-export function HistogramTooltip({ active, payload }: Props) {
+function HistogramTooltipImpl({ active, payload }: Props) {
   if (!active || !payload?.length) return null;
   const bucket = payload[0].payload;
 
@@ -35,3 +36,13 @@ export function HistogramTooltip({ active, payload }: Props) {
     </div>
   );
 }
+
+// recharts allocates a new `payload` array on every mousemove, so the default
+// shallow compare never hits. Compare the hovered bucket instead: re-render
+// only when the pointer crosses into a different bar.
+export const HistogramTooltip = memo(
+  HistogramTooltipImpl,
+  (prev, next) =>
+    prev.active === next.active &&
+    prev.payload?.[0]?.payload?.time === next.payload?.[0]?.payload?.time,
+);

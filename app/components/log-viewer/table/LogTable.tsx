@@ -22,9 +22,10 @@ import {
 interface Props {
   records: NormalizedLogRecord[];
   maxHeight?: number;
+  virtualized?: boolean;
 }
 
-function LogTableImpl({ records, maxHeight }: Props) {
+function LogTableImpl({ records, maxHeight, virtualized = true }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "time", desc: true },
@@ -116,36 +117,51 @@ function LogTableImpl({ records, maxHeight }: Props) {
           </div>
         ))}
 
-        {/* Virtualized rows */}
-        <div
-          style={{ height: virtualizer.getTotalSize(), position: "relative" }}
-        >
-          {virtualizer.getVirtualItems().map((virtualRow) => {
-            const row = rows[virtualRow.index];
-            return (
-              <div
-                key={row.id}
-                data-index={virtualRow.index}
-                ref={virtualizer.measureElement}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-              >
-                <LogRow
-                  row={row}
-                  expanded={expandedId === row.id}
-                  onToggle={() =>
-                    setExpandedId((cur) => (cur === row.id ? null : row.id))
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
+        {virtualized ? (
+          <div
+            style={{
+              height: virtualizer.getTotalSize(),
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              return (
+                <div
+                  key={row.id}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <LogRow
+                    row={row}
+                    expanded={expandedId === row.id}
+                    onToggle={() =>
+                      setExpandedId((cur) => (cur === row.id ? null : row.id))
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          rows.map((row) => (
+            <LogRow
+              key={row.id}
+              row={row}
+              expanded={expandedId === row.id}
+              onToggle={() =>
+                setExpandedId((cur) => (cur === row.id ? null : row.id))
+              }
+            />
+          ))
+        )}
       </div>
     </div>
   );

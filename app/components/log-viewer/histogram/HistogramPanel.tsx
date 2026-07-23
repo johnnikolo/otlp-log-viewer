@@ -1,8 +1,16 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { NormalizedLogRecord } from "@/types/otlp";
 import { ErrorOverlay } from "../../ui/ErrorOverlay";
-import { Histogram } from "./Histogram";
 import { HistogramSkeleton } from "./HistogramSkeleton";
 import { SeverityLegend } from "./SeverityLegend";
+
+// recharts is a heavy dependency only needed once data has loaded successfully.
+const Histogram = dynamic(
+  () => import("./Histogram").then((m) => m.Histogram),
+  { ssr: false, loading: () => <HistogramSkeleton /> },
+);
 
 type HistogramPanelProps = {
   isLoading: boolean;

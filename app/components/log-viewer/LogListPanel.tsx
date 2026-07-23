@@ -1,10 +1,19 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { NormalizedLogRecord } from "@/types/otlp";
 import { ErrorOverlay } from "../ui/ErrorOverlay";
 import { LogTable } from "./table/LogTable";
 import { TableSkeleton } from "./table/TableSkeleton";
-import { GroupedLogView } from "./GroupedLogView";
 import { ViewMode } from "./controls/ViewModeToggle";
+
+// Grouped view is opt-in (default viewMode is "flat"), so defer its chunk
+// (Radix Accordion + grouping logic) until the user actually switches to it.
+const GroupedLogView = dynamic(
+  () => import("./GroupedLogView").then((m) => m.GroupedLogView),
+  { ssr: false, loading: () => <TableSkeleton /> },
+);
 
 type LogListPanelProps = {
   isLoading: boolean;
