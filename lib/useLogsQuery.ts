@@ -7,7 +7,7 @@ import { transformLogs } from "@/lib/transform";
 export function useLogsQuery(refetchInterval: number | false = false) {
   return useQuery({
     queryKey: ["logs"],
-    queryFn: fetchLogs,
+    queryFn: ({ signal }) => fetchLogs(signal),
     select: transformLogs,
     staleTime: 30_000,
     refetchOnWindowFocus: true,

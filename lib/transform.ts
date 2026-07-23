@@ -163,12 +163,29 @@ function normalizeSeverity(
   return severityFromNumber(severityNumber);
 }
 
+// Deterministic 32-bit FNV-1a hash, base36-encoded to keep ids short. Used
+// instead of the raw content key so long bodies don't get carried as-is into
+// every React key / data-index / internal Map lookup downstream.
+function hashKey(key: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 // Main transformation: flatten the nested OTLP structure into a list of log records
 export function transformLogs(
   response: IExportLogsServiceRequest,
 ): NormalizedLogRecord[] {
   const records: NormalizedLogRecord[] = [];
-  let index = 0;
+  // Occurrence counter per content key, so an id depends only on records that
+  // share its own key - never on payload position. Keeps ids (and therefore
+  // React keys/expanded-row state/virtualizer measurements) stable across
+  // refetches of unchanged data, unlike a plain monotonic index which resets
+  // every call.
+  const seen = new Map<string, number>();
 
   for (const resourceLog of response.resourceLogs ?? []) {
     const resourceAttrs = resourceLog.resource?.attributes ?? [];
@@ -192,11 +209,18 @@ export function transformLogs(
           normalizeAttributes(record.attributes ?? []),
         );
 
+        const key = JSON.stringify([
+          serviceName,
+          record.timeUnixNano,
+          record.severityNumber,
+          body,
+        ]);
+        const occurrence = seen.get(key) ?? 0;
+        seen.set(key, occurrence + 1);
+        const hash = hashKey(key);
+
         records.push({
-          // Collision-proof ID: service + timestamp + a monotonic index. The
-          // first two alone can collide (same service emitting the same message
-          // in the same nanosecond), so the index guarantees unique React keys.
-          id: `${serviceName}-${record.timeUnixNano}-${index++}`,
+          id: occurrence === 0 ? hash : `${hash}#${occurrence}`,
           timestampMs,
           severityText: normalizeSeverity(
             record.severityText,
