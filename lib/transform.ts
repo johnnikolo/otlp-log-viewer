@@ -288,8 +288,12 @@ export function bucketByTime(
 
   for (const record of records) {
     const offset = record.timestampMs - start;
-    const idx = Math.floor(offset / bucketSize);
-    if (idx >= 0 && idx < bucketCount) {
+    // The window is anchored to the newest record's own timestamp (see above),
+    // so that record always lands at offset === windowMs, giving idx exactly
+    // === bucketCount - one past the last bucket. Clamp it into the final
+    // bucket instead of silently dropping the very log that anchors the window.
+    const idx = Math.min(Math.floor(offset / bucketSize), bucketCount - 1);
+    if (idx >= 0) {
       buckets[idx].count++;
       if (isErrorSeverity(record.severityNumber)) {
         buckets[idx].errors++;
