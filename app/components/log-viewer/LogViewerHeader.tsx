@@ -5,6 +5,7 @@ import { FileTextIcon } from "@radix-ui/react-icons";
 import { formatCompactNumber } from "@/lib/utils/format";
 import { useLogsQuery } from "@/lib/useLogsQuery";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { SeverityBadge } from "./SeverityBadge";
 import { RefreshControl } from "./controls/RefreshControl";
 import { TimeRangePicker } from "./controls/TimeRangePicker";
 import { ViewModeToggle, ViewMode } from "./controls/ViewModeToggle";
@@ -52,26 +53,26 @@ export function LogViewerHeader({
       {!isLoading && (
         <div className="flex items-center gap-3 text-xs font-mono flex-wrap">
           <span className="text-gray-500 dark:text-gray-400">
-            Showing{" "}
             <span className="text-gray-900 dark:text-white font-semibold">
               {formatCompactNumber(totalCount)}
             </span>{" "}
             logs
           </span>
           {errorCount > 0 && (
-            <span className="text-red-600 dark:text-red-400">
-              <span className="font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="text-red-600 dark:text-red-400 font-semibold">
                 {formatCompactNumber(errorCount)}
-              </span>{" "}
-              error &amp; fatal
+              </span>
+              <SeverityBadge severity="ERROR" />
+              <SeverityBadge severity="FATAL" />
             </span>
           )}
           {warnCount > 0 && (
-            <span className="text-amber-600 dark:text-amber-400">
-              <span className="font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">
                 {formatCompactNumber(warnCount)}
-              </span>{" "}
-              warn
+              </span>
+              <SeverityBadge severity="WARN" />
             </span>
           )}
         </div>
@@ -79,7 +80,7 @@ export function LogViewerHeader({
 
       <div className="w-full sm:w-auto sm:ml-auto flex items-center gap-3 flex-wrap">
         {dataUpdatedAt > 0 && (
-          <span className="text-xs text-muted dark:text-muted-dark font-mono hidden sm:inline">
+          <span className="text-xs text-muted dark:text-muted-dark font-mono hidden xl:inline">
             Updated at {new Date(dataUpdatedAt).toLocaleTimeString()}
           </span>
         )}

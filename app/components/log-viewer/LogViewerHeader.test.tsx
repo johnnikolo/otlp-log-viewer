@@ -47,25 +47,26 @@ describe("LogViewerHeader", () => {
   it("hides the stats row while the query is loading", () => {
     mockFetchLogs.mockReturnValue(new Promise(() => {})); // never resolves
     renderHeader();
-    expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/logs/)).not.toBeInTheDocument();
   });
 
   it("shows the stats row once the query has loaded", async () => {
     mockFetchLogs.mockResolvedValue(exportRequest([]));
     renderHeader();
-    expect(await screen.findByText(/Showing/)).toBeInTheDocument();
+    expect(await screen.findByText(/logs/)).toBeInTheDocument();
   });
 
   it("shows error/warn counts only when non-zero", async () => {
     mockFetchLogs.mockResolvedValue(exportRequest([]));
     const { rerenderWithProps } = renderHeader({ errorCount: 0, warnCount: 0 });
-    await screen.findByText(/Showing/);
-    expect(screen.queryByText(/error & fatal/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/warn/)).not.toBeInTheDocument();
+    await screen.findByText(/logs/);
+    // Error/warn counts render as SeverityBadges (ERROR, WARN).
+    expect(screen.queryByText("ERROR")).not.toBeInTheDocument();
+    expect(screen.queryByText("WARN")).not.toBeInTheDocument();
 
     rerenderWithProps({ errorCount: 3, warnCount: 2 });
-    expect(screen.getByText(/error & fatal/)).toBeInTheDocument();
-    expect(screen.getByText(/warn/)).toBeInTheDocument();
+    expect(screen.getByText("ERROR")).toBeInTheDocument();
+    expect(screen.getByText("WARN")).toBeInTheDocument();
   });
 
   it("shows the 'Updated at' timestamp only once the query has resolved at least once", async () => {
@@ -87,7 +88,7 @@ describe("LogViewerHeader", () => {
     mockFetchLogs.mockResolvedValue(exportRequest([]));
     const user = userEvent.setup();
     renderHeader();
-    await screen.findByText(/Showing/);
+    await screen.findByText(/logs/);
     expect(mockFetchLogs).toHaveBeenCalledTimes(1);
 
     mockFetchLogs.mockResolvedValueOnce(

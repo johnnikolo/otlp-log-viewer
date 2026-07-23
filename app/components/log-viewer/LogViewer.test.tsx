@@ -53,15 +53,16 @@ describe("LogViewer", () => {
 
     expect(await screen.findByText("order placed")).toBeInTheDocument();
     expect(screen.getByText("payment failed")).toBeInTheDocument();
-    // Header stats: "Showing 2 logs" (split across text + nested count span)
-    // and "1 error & fatal".
+    // Header stats: "2 logs" + an ERROR badge (scoped to the header, since the table has badges too).
     expect(
       screen.getByText(
         (_, node) =>
-          node?.textContent?.replace(/\s+/g, " ").trim() === "Showing 2 logs",
+          node?.textContent?.replace(/\s+/g, " ").trim() === "2 logs",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/error & fatal/)).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("banner")).getByText("ERROR"),
+    ).toBeInTheDocument();
   });
 
   it("renders the severity color legend beneath the histogram once data loads", async () => {
@@ -69,7 +70,7 @@ describe("LogViewer", () => {
       exportRequest([{ serviceName: "svc", records: [logRecord()] }]),
     );
     const { container } = renderLogViewer();
-    await screen.findByText(/Showing/);
+    await screen.findByText("hello"); // default log body - proves data has loaded
 
     // Scoped to the histogram card to avoid colliding with table's severity badges.
     const histogramCard =
