@@ -1,0 +1,10 @@
+export const CHEVRON_WIDTH = 32;
+export const SEVERITY_WIDTH = 112;
+export const TIME_WIDTH = 112;
+export const SERVICE_WIDTH = 128;
+export const BODY_MIN_WIDTH = 220;
+
+export const ROW_MIN_WIDTH =
+  CHEVRON_WIDTH + SEVERITY_WIDTH + TIME_WIDTH + SERVICE_WIDTH + BODY_MIN_WIDTH;
+
+export const ESTIMATED_ROW_HEIGHT = 33;
